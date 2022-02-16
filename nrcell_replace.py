@@ -156,7 +156,7 @@ def app():
         #     file = f.read()
 
         # 'xml' is the parser used. For html files, which BeautifulSoup is typically used for, it would be 'html.parser'.
-        soup = BeautifulSoup(xml_str, "xml")
+        soup = BeautifulSoup(xml_str)
         print("--cellNAme---")
         print(soup.find_all(attrs={"name": "cellName"}))
         print("--cellName End---")
