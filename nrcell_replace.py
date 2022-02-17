@@ -395,101 +395,101 @@ def app():
                 #         print('---')
                 if mf_tag.parent.name.find('managedObject') > -1:
                     # st.sidebar.write(
-                        f"found managedObject in parent..{mf_tag.parent['class']}")
+                    # f"found managedObject in parent..{mf_tag.parent['class']}")
                     if mf_tag.parent['class'].find('NRCELL') > -1:
-                        mf_val=mf_dict.get(
+                        mf_val = mf_dict.get(
                             int(mf_tag.parent['distName'].split('-')[-1]))
                         # st.sidebar.write(f"replacing with value..{mf_val}")
-                        mf_tag.string=str(mf_val).lstrip().rstrip()
+                        mf_tag.string = str(mf_val).lstrip().rstrip()
                     elif mf_tag.parent['class'].find('NRPLMNSET_NSA') > -1:
                         #                 mf_val = mf_dict.get(int(mf_tag.parent['distName'].split('/')[2].split('-')[-1]))
-                        cell_value=re.findall(
+                        cell_value = re.findall(
                             r'NRCELL-[0-9]+', mf_tag.parent['distName'])[-1].split('-')[1]
                         print(f"cell value is..{cell_value}")
-                        mf_val=mf_dict.get(int(cell_value))
+                        mf_val = mf_dict.get(int(cell_value))
                         print(
                             f"the  mf value is.. {str(mf_val).lstrip().rstrip()}")
-                        mf_tag.string=str(mf_val).lstrip().rstrip()
+                        mf_tag.string = str(mf_val).lstrip().rstrip()
         #           name="trackingAreaDN"
                     elif mf_tag.parent['class'].find('NRPLMNSET_SA') > -1:
-                        cell_value=re.findall(
+                        cell_value = re.findall(
                             r'NRCELL-[0-9]+', mf_tag.parent['distName'])[-1].split('-')[1]
                         print(f"cell value is..{cell_value}")
-                        mf_val=mf_dict.get(int(cell_value))
+                        mf_val = mf_dict.get(int(cell_value))
                         print(
                             f"the  mf value is.. {str(mf_val).lstrip().rstrip()}")
-                        existing_tdn=re.findall(
+                        existing_tdn = re.findall(
                             r'TRACKINGAREA-[0-9]+', mf_tag.text)[-1].split('-')[1]
                         print(f"existing tracking area is..{existing_tdn}")
                         print(f"text is..{mf_tag.text}")
-                        replacement_text=mf_tag.text.replace(
+                        replacement_text = mf_tag.text.replace(
                             str(existing_tdn), str(mf_val).lstrip().rstrip())
                         print(f"replacement text is .. {replacement_text}")
-                        mf_tag.string=str(replacement_text)
+                        mf_tag.string = str(replacement_text)
                     # fiveGsTac
                     elif mf_tag.parent['class'].find('TRACKINGAREA') > -1:
-                        cell_value=1  # fiveGsTac requirement
+                        cell_value = 1  # fiveGsTac requirement
                         print(f"cell value is..{cell_value}")
-                        mf_val=mf_dict.get(int(cell_value))
+                        mf_val = mf_dict.get(int(cell_value))
                         print(
                             f"the  mf value is.. {str(mf_val).lstrip().rstrip()}")
-                        existing_tdn=re.findall(
+                        existing_tdn = re.findall(
                             r'TRACKINGAREA-[0-9]+', mf_tag.parent['distName'])[-1].split('-')[1]
                         print(f"existing tracking area is..{existing_tdn}")
                         print(f"text is..{mf_tag.parent['distName']}")
-                        replacement_text=mf_tag.parent['distName'].replace(
+                        replacement_text = mf_tag.parent['distName'].replace(
                             str(existing_tdn), str(mf_val).lstrip().rstrip())
                         print(f"replacement text is .. {replacement_text}")
-                        mf_tag.string=str(mf_val).lstrip().rstrip()
-                        mf_tag.parent['distName']=str(replacement_text)
+                        mf_tag.string = str(mf_val).lstrip().rstrip()
+                        mf_tag.parent['distName'] = str(replacement_text)
                     # dlCarrierFreq
                     elif mf_tag.parent['class'].find('NRIRFIM') > -1:
-                        cell_value=re.findall(
+                        cell_value = re.findall(
                             r'NRIRFIM-[0-9]+', mf_tag.parent['distName'])[-1].split('-')[1]
                         print(f"cell value is..{cell_value}")
-                        mf_val=mf_dict.get(int(cell_value))
+                        mf_val = mf_dict.get(int(cell_value))
                         print(
                             f"the  mf value is.. {str(mf_val).lstrip().rstrip()}")
-                        mf_tag.string=str(mf_val).lstrip().rstrip()
+                        mf_tag.string = str(mf_val).lstrip().rstrip()
 
         def nrcell_modify(key, value):
             if value.find('dlCarrierFreq') > -1:
-                pci_dict=get_idle_dict(str(value))
+                pci_dict = get_idle_dict(str(value))
                 print(f"pMax Dict..{pci_dict}")
             else:
-                pci_dict=get_nrcell_dict(str(value))
+                pci_dict = get_nrcell_dict(str(value))
                 # st.sidebar.write(f"pMax Dict for {str(key)}..{pci_dict}")
                 # st.sidebar.write(str(key))
 
             replace_nrcell_par(str(key), pci_dict)
 
         def process_tnd_pars():
-            tnd_dict=get_tnd_dict('CORENET Default  Gateway (s1,x2,U,C)')
+            tnd_dict = get_tnd_dict('CORENET Default  Gateway (s1,x2,U,C)')
             print(tnd_dict.get('NPH20115B'))
 
             replace_tnd_par1('gateway', tnd_dict)
 
-            col18_dict=get_tnd_dict(
+            col18_dict = get_tnd_dict(
                 "gNodeB's user plane IP address   (s1,x2)")
             print(col18_dict.get('NPH20115B'))
             replace_tnd_par1('localIpAddr', col18_dict)
 
-            col14_dict=get_tnd_dict("gNodeB OAM IP address")
+            col14_dict = get_tnd_dict("gNodeB OAM IP address")
             print(col14_dict.get('NPH20115B'))
             replace_tnd_par2('localIpAddr', col14_dict)
 
-            vlan_dict=get_tnd_dict(
+            vlan_dict = get_tnd_dict(
                 "CORENET AAV Ethernet VLAN ID (s1,x2,U,C)")
             print(vlan_dict.get('NPH20115B'))
             replace_tnd_vlan('vlanId', vlan_dict)
 
         def remove_blank_spaces():
-            tags=soup.find_all('p')
+            tags = soup.find_all('p')
             for tag in tags:
                 # print(tag.string)
-                tag.string=str(tag.text).lstrip().rstrip()
+                tag.string = str(tag.text).lstrip().rstrip()
 
-        nrcell_par_dict={
+        nrcell_par_dict = {
             'cellName': 'cellName',
             'gscn': 'gscn',
             'dlMimoMode': 'dlMimoMode',
@@ -533,8 +533,8 @@ def app():
         # pretty_xml_as_string = str(soup.prettify(formatter=None))
         # print(f"pretty xml...{pretty_xml_as_string}")
         st.download_button(label='📥 Download XML ',
-                           data = pretty_xml_as_string,
-                           file_name = f'3AHLOA(shared)_15BW+3AEHC (shared)_100BW_NoAHFIG.xml')
+                           data=pretty_xml_as_string,
+                           file_name=f'3AHLOA(shared)_15BW+3AEHC (shared)_100BW_NoAHFIG.xml')
 
 
 app()
