@@ -18,9 +18,9 @@ xml_str = '<?xml version="1.0" encoding="utf-8"?>\n<raml version="2.1" xmlns="ra
 
 xml_str = xml_str.replace('\n', '')
 # pattern = re.compile('MRBTS-(\d{7,})')
-# st.sidebar.write(type(pattern))
+# print(type(pattern))
 # xml_str = re.sub('MRBTS-(\d{7,})', r'MRBTS-1234567', xml_str)
-# st.sidebar.write(pattern.findall(xml_str))
+# print(pattern.findall(xml_str))
 # # print(xml_str)
 
 
@@ -298,11 +298,12 @@ def app():
         def modify_mrbts_tag(attr_name, mrbts_par):
             bts_tags = soup.find_all(attrs={"name": str(attr_name)})
             pattern = re.compile('MRBTS-(\d{7,})')
-            # st.sidebar.write(type(pattern))
+            # print(type(pattern))
             mrbts_str = re.sub(
                 'MRBTS-(\d{7,})', f'MRBTS-{str(get_mrbts_value("mrBtsId")).lstrip().rstrip()}', str(soup))
-            # st.sidebar.write(pattern.findall(mrbts_str))
-            # change all values of MRBTS-
+            # print(pattern.findall(mrbts_str))
+            # ''' change all values of MRBTS-
+            # '''
             for txt in soup.findAll(text=True):
                 if re.search('MRBTS-(\d{7,})', txt, re.I):
                     newtext = re.sub(
@@ -343,7 +344,7 @@ def app():
             # for mode, lcrid in enumerate(comb_list):
             #     print(mode, lcrid)
             dict = {lcrid: mode for mode, lcrid in comb_list}
-            # st.sidebar.write(dict)
+            # print(dict)
             print('---')
             print(dict.get(1))
             # print(list(mode))
@@ -353,9 +354,32 @@ def app():
             # print(len(mode_list))
             return dict
 
+        def get_physcell_dict(parName):
+            mode = ciq_cell_par[str(parName)]
+            lcrid = ciq_cell_par['cellName']
+            mode_lst = mode.to_list()
+            lcrid_lst = lcrid.to_list()
+            lcrid_flst = list(filter(lambda k: 'KPH' in k, lcrid_lst))
+            comb_list = zip(mode_lst, lcrid_lst)
+            dict = {lcrid: mode for mode, lcrid in comb_list}
+            res = [dict[i] for i in lcrid_flst if i in dict]
+            dict_res = {}
+            for k, v in enumerate(res):
+                dict_res[k] = v
+            print(f"physCell dict is..{dict_res}")
+
+            print('---')
+            print(dict.get(1))
+            # print(list(mode))
+            mode_set = set(mode.to_list())
+            # print(mode_set)
+        #     mode_list = mode_set.to_list()
+            # print(len(mode_list))
+            return dict_res
+
         def get_idle_dict(parName):
             mode = inr_cell_par[str(parName)]
-            lcrid = inr_cell_par['nrIrfimId']
+            lcrid = inr_cell_par['freqBandIndicatorNR']
             mode_lst = mode.to_list()
             lcrid_lst = lcrid.to_list()
             comb_list = zip(mode_lst, lcrid_lst)
@@ -363,7 +387,7 @@ def app():
             # for mode, lcrid in enumerate(comb_list):
             #     print(mode, lcrid)
             dict = {lcrid: mode for mode, lcrid in comb_list}
-            print(dict)
+            print(f"dlCarrir dict..{dict}")
             print('---')
             print(dict.get(1))
             # print(list(mode))
@@ -373,17 +397,19 @@ def app():
             # print(len(mode_list))
             return dict
 
-        def replace_nrcell_par(parName, mf_dict):
+        def replace_nrcell_par(parName, mf_dict, physcell_dict={}):
             print(f"inside replace function par name..{parName}")
             print(f"inside replace function mf dict {mf_dict}")
+            # print(f"physcell_dict is.. {physcell_dict}")
             mf_tags = soup.find_all(
                 attrs={"name": str(parName).rstrip().lstrip()})
-            # st.sidebar.write(f"--parName .. {str(parName).rstrip().lstrip()}")
-            # st.sidebar.write(f"--Start{parName}---")
-            # st.sidebar.write(f"mf tags..{len(mf_tags)}")
-            # st.sidebar.write(f"--End{parName}---")
+            # print(f"--parName .. {str(parName).rstrip().lstrip()}")
+            # print(f"--Start{parName}---")
+            # print(f"mf tags..{len(mf_tags)}")
+            # print(f"--End{parName}---")
             for mf_tag in mf_tags:
-                # st.sidebar.write(f"parent tag is..{mf_tag.parent.name}")
+                # print(
+                # f"parent tag is..{mf_tag.parent.parent.parent.name}")
                 # print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
                 #         print(f'printing the managedObject class...{str(mf_tag.find_parents("managedObject"))}')
                 #         soup_m = BeautifulSoup(str(mf_tag.find_parents("managedObject")))
@@ -394,12 +420,12 @@ def app():
                 #         print(mf_dict.get(int(mf_tag.parent['distName'].split('-')[-1])))
                 #         print('---')
                 if mf_tag.parent.name.find('managedObject') > -1:
-                    # st.sidebar.write(
+                    # print(
                     # f"found managedObject in parent..{mf_tag.parent['class']}")
                     if mf_tag.parent['class'].find('NRCELL') > -1:
                         mf_val = mf_dict.get(
                             int(mf_tag.parent['distName'].split('-')[-1]))
-                        # st.sidebar.write(f"replacing with value..{mf_val}")
+                        # print(f"replacing with value..{mf_val}")
                         mf_tag.string = str(mf_val).lstrip().rstrip()
                     elif mf_tag.parent['class'].find('NRPLMNSET_NSA') > -1:
                         #                 mf_val = mf_dict.get(int(mf_tag.parent['distName'].split('/')[2].split('-')[-1]))
@@ -444,13 +470,27 @@ def app():
                         mf_tag.parent['distName'] = str(replacement_text)
                     # dlCarrierFreq
                     elif mf_tag.parent['class'].find('NRIRFIM') > -1:
-                        cell_value = re.findall(
-                            r'NRIRFIM-[0-9]+', mf_tag.parent['distName'])[-1].split('-')[1]
+                        # find sibling freqBandIndicatorNR
+                        # 'a[href*=".com/el"]'
+                        freq_band = mf_tag.find_next_sibling("p")
+                        cell_value = freq_band.text
                         print(f"cell value is..{cell_value}")
                         mf_val = mf_dict.get(int(cell_value))
                         print(
                             f"the  mf value is.. {str(mf_val).lstrip().rstrip()}")
+                        print(f"old text..{mf_tag}")
                         mf_tag.string = str(mf_val).lstrip().rstrip()
+                        print(f"changed text..{mf_tag}")
+                elif mf_tag.parent.parent.parent['class'].find('NRIAFIM') > -1:
+                    cell_value = ''
+                    list_physcell = mf_tag.parent.parent.find_all(
+                        "p", attrs={"name": "physCellId"})
+                    print(type(list_physcell))
+                    for index, tagg in enumerate(list_physcell):
+                        print(f"index is..{index}")
+                        print(f"tag is..{tagg.text}")
+                        print(physcell_dict.get(index))
+                        tagg.string = str(physcell_dict.get(index))
 
         def nrcell_modify(key, value):
             if value.find('dlCarrierFreq') > -1:
@@ -458,10 +498,11 @@ def app():
                 print(f"pMax Dict..{pci_dict}")
             else:
                 pci_dict = get_nrcell_dict(str(value))
-                # st.sidebar.write(f"pMax Dict for {str(key)}..{pci_dict}")
-                # st.sidebar.write(str(key))
+                # print(f"pMax Dict for {str(key)}..{pci_dict}")
+                # print(str(key))
 
-            replace_nrcell_par(str(key), pci_dict)
+            replace_nrcell_par(str(key), pci_dict,
+                               get_physcell_dict('physCellId'))
 
         def process_tnd_pars():
             tnd_dict = get_tnd_dict('CORENET Default  Gateway (s1,x2,U,C)')
