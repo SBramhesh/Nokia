@@ -202,7 +202,7 @@ add_selectbox = st.sidebar.selectbox(
 # make the request and return the json
 # user_data = requests.get(url).json()
 # pretty print JSON data
-# st.sidebar.write(user_data)
+# print(user_data)
 
 # Get the current working
 # directory (CWD)
@@ -210,22 +210,22 @@ cwd = os.getcwd()
 db = firestore.Client.from_service_account_json("firestore-key.json")
 # import json
 # key_dict = json.loads(st.secrets["textkey"])
-# st.sidebar.write(key_dict)
+# print(key_dict)
 # creds = service_account.Credentials.from_service_account_info(key_dict)
 # db = firestore.Client(credentials=creds, project="streamlit-reddit")
 
 # Print the current working
 # directory (CWD)
-# st.sidebar.write("Current working directory:", cwd)
+# print("Current working directory:", cwd)
 
 # Get the list of all files and directories
 # in the root directory
 # dir_list = os.listdir(cwd)
 
-# st.sidebar.write("Files and directories in '", cwd, "' :")
+# print("Files and directories in '", cwd, "' :")
 
 # print the list
-# st.sidebar.write(dir_list)
+# print(dir_list)
 
 # fd = "GFG.txt"
 
@@ -235,7 +235,7 @@ db = firestore.Client.from_service_account_json("firestore-key.json")
 # file.close()
 # file = open(fd, 'r')
 # text = file.read()
-# st.sidebar.write(text)
+# print(text)
 
 
 # directory = r"c:\temp\uploads"
@@ -328,14 +328,14 @@ def app():
 
         number = st.number_input(
             f'VSWR Threshold limit  ( > = )', value=1.4, key="vswr")
-        st.sidebar.write('The VSWR Threshold limit  is ',
-                         np.around(st.session_state.vswr, 2))
+        print('The VSWR Threshold limit  is ',
+              np.around(st.session_state.vswr, 2))
         # t = st.time_input('Set an alarm for', datetime.time(8, 45))
         # st.write('Alarm is set for', t)
 
         # def form_callback():
-        #     st.sidebar.write(st.session_state.my_slider)
-        #     st.sidebar.write(st.session_state.my_checkbox)
+        #     print(st.session_state.my_slider)
+        #     print(st.session_state.my_checkbox)
 
         # with st.form(key='my_form'):
         #     slider_input = st.slider('My slider', 0, 10, 5, key='my_slider')
@@ -352,13 +352,13 @@ def app():
             #  string_data = stringio.read()
             #  st.write(string_data)# Can be used wherever a "file-like" object is accepted:
             # excel_read = pd.read_csv(uploaded_file)
-            # st.sidebar.write(type(uploaded_file))
+            # print(type(uploaded_file))
             # vswr_uploaded_file = uploaded_file
             # df_vswr = process_vswr(vswr_uploaded_file)
             uploadedfn = uploaded_file.name
             siteid = uploadedfn.split('_')[2][1:]
             st.session_state["site_id"] = siteid
-            st.sidebar.write(f"Site Id: :point_right: *{siteid}*")
+            print(f"Site Id: :point_right: *{siteid}*")
             excel_read = pd.read_csv(uploaded_file, skiprows=1, header=None)
             myfiler = excel_read
             df_vswr = process_vswr(excel_read)
@@ -448,7 +448,7 @@ def app():
 
             print(f"----TO JSON---")
             radiojson = myfiler.to_json(orient="records")
-            # st.sidebar.write(radiojson)
+            # print(radiojson)
             data_dict = myfiler.to_dict("records")
             # doc_ref = db.collection(u'Nokiadbprod').document(
             #     f"{siteid}->{str(now)}")
@@ -745,7 +745,7 @@ def app():
 
                 print(dffdif.T)
                 dffdift = dffdif.T
-                # st.sidebar.write(dffdift)
+                # print(dffdift)
                 dffdift = dffdift.iloc[2: -1, :]
 
                 print('count 0 ')
@@ -834,7 +834,7 @@ def app():
 
             # bool_findings = df.loc[:, ['ANT1 DI Cause', 'ANT2 DI Cause',
             #    'ANT3 DI Cause', 'ANT4 DI Cause']].str.contains('0|0')
-            # st.sidebar.write(bool_findings)
+            # print(bool_findings)
             # mask = df['AT4 DI Cause'].str.contains(r'16|64', na=True)
             # df.reset_index(inplace=True)
             # df.reset_index(drop=True, inplace=True)
@@ -862,19 +862,19 @@ def app():
             for rlist in report_dilist:
                 new_rlist = []
                 for key, val in enumerate(rlist):
-                    st.sidebar.write(f"{key - 1} : {val}")
+                    print(f"{key - 1} : {val}")
                     if str(val).find('|') > -1 and str(val).find('0|0') == -1:
                         new_rlist.append(key - 1)
                     elif str(val).find('|') == -1 and str(val).find('0|0') == -1:
                         new_rlist.append(val)
                 # rlist[:] = [x for x in rlist if "0|0" not in x]
-                st.sidebar.write(new_rlist)
+                print(new_rlist)
                 new_report_dilist.append(new_rlist)
-            st.sidebar.write(new_report_dilist)
+            print(new_report_dilist)
 
-            # st.sidebar.write(report_dilist)
+            # print(report_dilist)
             threedilist = dfcause.values.tolist()
-            # st.sidebar.write(threedilist)
+            # print(threedilist)
             reporting_len = len(threedilist)
             flat_list = list(chain(*threedilist))
             flat_list[:] = [x for x in flat_list if "0|0" not in x]
@@ -1031,17 +1031,17 @@ def app():
                 # First we find the maximum length of the index column
                 idx_max = max(
                     [len(str(s)) for s in dataframe.index.values] + [len(str(dataframe.index.name))])
-                # st.sidebar.write(dataframe.index.name)
+                # print(dataframe.index.name)
                 len_index = [[s for s in dataframe[col].values]
                              for col in dataframe.columns]
-                # st.sidebar.write(len_index)
+                # print(len_index)
                 # Then, we concatenate this to the max of the lengths of column name and its values for each column, left to right
                 return_list = [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [
                                                len(col)]) for col in dataframe.columns]
-                # st.sidebar.write(return_list)
+                # print(return_list)
                 return [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [len(col)]) for col in dataframe.columns]
 
-                # st.sidebar.write(get_col_widths(df1))
+                # print(get_col_widths(df1))
 
             def to_excel(df, df1, df_vswr, df2):
                 vswr_offset = 5
@@ -1064,9 +1064,9 @@ def app():
                 for key, val in enumerate(new_report_dilist):
                     port_str = ",".join(str(val[2:])).replace(
                         ',,,', '#').replace(',', '').replace('#', ',').replace('[', '').replace(']', '')
-                    st.sidebar.write(port_str)
+                    print(port_str)
                     report_str = f"{val[0]}-{val[1]}-{port_str}"
-                    st.sidebar.write(report_str)
+                    print(report_str)
                     worksheet.write_string(
                         df1.shape[0] + 4 + key-1, 0, report_str)
                 worksheet.write_string(
