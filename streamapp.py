@@ -450,16 +450,16 @@ def app():
             radiojson = myfiler.to_json(orient="records")
             # st.sidebar.write(radiojson)
             data_dict = myfiler.to_dict("records")
-            doc_ref = db.collection(u'Nokiadbprod').document(
-                f"{siteid}->{str(now)}")
-            doc_ref.set({
-                u'Technology': u'Nokia LTE',
-                u'site_id': st.session_state["site_id"],
-                u'firstcol': first_json,
-                u'data': radiojson,
-                u'vswr': vswr_json,
-                "timestamp": dt_string
-            })
+            # doc_ref = db.collection(u'Nokiadbprod').document(
+            #     f"{siteid}->{str(now)}")
+            # doc_ref.set({
+            #     u'Technology': u'Nokia LTE',
+            #     u'site_id': st.session_state["site_id"],
+            #     u'firstcol': first_json,
+            #     u'data': radiojson,
+            #     u'vswr': vswr_json,
+            #     "timestamp": dt_string
+            # })
 
             # # Firestore DB#### 398 - 422
 
@@ -1077,7 +1077,7 @@ def app():
                                     value, header_vswr_format)
 
                 # Set the default height of all the rows, efficiently.
-                worksheet.set_default_row(30)
+                worksheet.set_default_row(15)
                 # Set the default height of all the columns, efficiently.
                 # worksheet.set_default_column(45)
 
