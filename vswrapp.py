@@ -1113,10 +1113,10 @@ def app():
                 for i, width in enumerate(col_width_list):
                     worksheet.set_column(i, i, width)
 
-                worksheet.set_row(0, 30)  # Set the height of Row 1 to 30.
+                worksheet.set_row(0, 15)  # Set the height of Row 1 to 30.
                 # worksheet.set_column('A:A', None, format1)
                 border_fmt = workbook.add_format(
-                    {'bottom': 5, 'top': 5, 'left': 5, 'right': 5})
+                    {'bottom': 1, 'top': 1, 'left': 1, 'right': 1})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
                     0, 0, len(df1), len(df1.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
                 # worksheet.conditional_format(xlsxwriter.utility.xl_range(

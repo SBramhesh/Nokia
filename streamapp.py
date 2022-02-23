@@ -822,6 +822,7 @@ def app():
                     'ANT1 DI Cause': ant1_di_cause, 'ANT2 DI Cause': ant2_di_cause, 'ANT3 DI Cause': ant3_di_cause,
                     'ANT4 DI Cause': ant4_di_cause, 'Average RTWP ANT1': avg_ant1, 'Average RTWP ANT2': avg_ant2,
                     'Average RTWP ANT3': avg_ant3, 'Average RTWP ANT4': avg_ant4,
+                    # 'RMOD [logical number]':  rmodlist
                     'RMOD [logical number]':  rmodlist,  'CELL [logical name]': rxlistminusYZ,
                     }
 
@@ -853,7 +854,28 @@ def app():
 
             dfcause = df.loc[df['Average DI'] > 3, ['ANT1 DI Cause',
                                                     'ANT2 DI Cause', 'ANT3 DI Cause', 'ANT4 DI Cause']]
+            df_report = df.loc[df['Average DI'] > 3, ['Band', 'Sector-Radio Type', 'ANT1 DI Cause',
+                                                      'ANT2 DI Cause', 'ANT3 DI Cause', 'ANT4 DI Cause']]
+            # st.sidebar.table(df_report)
+            report_dilist = df_report.values.tolist()
+            new_report_dilist = []
+            for rlist in report_dilist:
+                new_rlist = []
+                for key, val in enumerate(rlist):
+                    st.sidebar.write(f"{key - 1} : {val}")
+                    if str(val).find('|') > -1 and str(val).find('0|0') == -1:
+                        new_rlist.append(key - 1)
+                    elif str(val).find('|') == -1 and str(val).find('0|0') == -1:
+                        new_rlist.append(val)
+                # rlist[:] = [x for x in rlist if "0|0" not in x]
+                st.sidebar.write(new_rlist)
+                new_report_dilist.append(new_rlist)
+            st.sidebar.write(new_report_dilist)
+
+            # st.sidebar.write(report_dilist)
             threedilist = dfcause.values.tolist()
+            # st.sidebar.write(threedilist)
+            reporting_len = len(threedilist)
             flat_list = list(chain(*threedilist))
             flat_list[:] = [x for x in flat_list if "0|0" not in x]
             print(flat_list)
@@ -1022,6 +1044,7 @@ def app():
                 # st.sidebar.write(get_col_widths(df1))
 
             def to_excel(df, df1, df_vswr, df2):
+                vswr_offset = 5
                 output = BytesIO()
                 writer = pd.ExcelWriter(output, engine='xlsxwriter')
                 df = df.set_properties(**{'text-align': 'left'})
@@ -1029,16 +1052,27 @@ def app():
                 # st.table(df)
                 df.to_excel(writer, index=False)
                 # df1.to_excel(writer, sheet_name='Result',
-                #              startrow=1, startcol=0)
+                #              startrow=1, startcol=0)]
+                reporting_str = 'Please find the below report of RTWP Diversity imbalance:-'
 
                 workbook = writer.book
                 worksheet = writer.sheets['Sheet1']
                 vswr_format = workbook.add_format()
                 vswr_format.set_bold()
                 worksheet.write_string(
-                    df1.shape[0] + 4, 0, 'VSWR', vswr_format)
+                    df1.shape[0] + 2, 0, reporting_str, vswr_format)
+                for key, val in enumerate(new_report_dilist):
+                    port_str = ",".join(str(val[2:])).replace(
+                        ',,,', '#').replace(',', '').replace('#', ',').replace('[', '').replace(']', '')
+                    st.sidebar.write(port_str)
+                    report_str = f"{val[0]}-{val[1]}-{port_str}"
+                    st.sidebar.write(report_str)
+                    worksheet.write_string(
+                        df1.shape[0] + 4 + key-1, 0, report_str)
+                worksheet.write_string(
+                    df1.shape[0] + 4 + reporting_len, 0, 'VSWR', vswr_format)
                 df_vswr.to_excel(writer, sheet_name='Sheet1',
-                                 startrow=df1.shape[0] + 5, startcol=0, index=False)
+                                 startrow=df1.shape[0] + reporting_len + vswr_offset, startcol=0, index=False)
                 format1 = workbook.add_format({'num_format': '0.00'})
                 # Format all the columns.
                 my_format = workbook.add_format(
@@ -1073,7 +1107,7 @@ def app():
 
                 # Write the column headers with the defined format.
                 for col_num, value in enumerate(df2.columns.values):
-                    worksheet.write(len(df1) + 5, col_num,
+                    worksheet.write(len(df1) + reporting_len + vswr_offset, col_num,
                                     value, header_vswr_format)
 
                 # Set the default height of all the rows, efficiently.
@@ -1089,21 +1123,27 @@ def app():
                 #  'minimum':  0,
                 #  'maximum':  30,
                 #  'format':   format3})
+                avg_rtwp_width = 12
                 col_width_list = get_col_widths(df1)
                 col_width_list[0] = 15  # Sector Radio Type
+                col_width_list[1] = 10  # Band
                 col_width_list[2] = 10  # Readings Analyzed
                 col_width_list[3] = 10  # Average DI
+                col_width_list[9] = avg_rtwp_width  # Average RTWP ANT1
+                col_width_list[10] = avg_rtwp_width  # Average RTWP ANT2
+                col_width_list[11] = avg_rtwp_width  # Average RTWP ANT3
+                col_width_list[12] = avg_rtwp_width  # Average RTWP ANT4
                 for i, width in enumerate(col_width_list):
                     worksheet.set_column(i, i, width)
 
                 worksheet.set_row(0, 30)  # Set the height of Row 1 to 30.
                 # worksheet.set_column('A:A', None, format1)
                 border_fmt = workbook.add_format(
-                    {'bottom': 5, 'top': 5, 'left': 5, 'right': 5})
+                    {'bottom': 1, 'top': 1, 'left': 1, 'right': 1})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
                     0, 0, len(df1), len(df1.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
-                    len(df1) + 5, 0, len(df2) + len(df1) + 5, len(df2.columns)), {'type': 'no_errors', 'format': border_fmt})
+                    len(df1) + reporting_len + vswr_offset, 0, len(df2) + len(df1) + vswr_offset + reporting_len, len(df2.columns)), {'type': 'no_errors', 'format': border_fmt})
                 # worksheet.conditional_format(xlsxwriter.utility.xl_range(
                 # 0, 0, 1, len(df1.columns)), {'type': 'no_errors', 'format': my_format})
                 writer.save()
