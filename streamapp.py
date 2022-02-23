@@ -1065,7 +1065,7 @@ def app():
                     port_str = ",".join(str(val[2:])).replace(
                         ',,,', '#').replace(',', '').replace('#', ',').replace('[', '').replace(']', '')
                     print(port_str)
-                    report_str = f"{val[0]}-{val[1]}-{port_str}"
+                    report_str = f"* {val[0]}-{val[1]} Port(s)-{port_str}"
                     print(report_str)
                     worksheet.write_string(
                         df1.shape[0] + 4 + key-1, 0, report_str)
