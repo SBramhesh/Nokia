@@ -99,6 +99,12 @@ def app():
                 ciq_cell_par = ciq_cell_par.iloc[:, 1:]
                 # ciq_cell_par
 
+                ho_cell_par = pd.read_excel(
+                    uploaded_file_nr_ciq, sheet_name='HO Inter NR', header=3, skiprows=None)
+                ho_cell_par = ho_cell_par.dropna(thresh=5)
+                ho_cell_par = ho_cell_par.iloc[:, 1:]
+                # ho_cell_par
+                # st.sidebar.table(ciq_cell_par)
                 inr_cell_par = pd.read_excel(
                     uploaded_file_nr_ciq, sheet_name='Idle Inter NR', header=3, skiprows=None)
                 inr_cell_par = inr_cell_par.dropna(thresh=5)
@@ -135,6 +141,42 @@ def app():
                     </style>
                     """
             st.markdown(hide_st_style, unsafe_allow_html=True)
+
+            # col1, col2 = st.columns([1, 3])
+
+            # col1.markdown('**Upload TND CIQ file**.')
+            uploaded_file_lte_ciq = st.file_uploader(
+                "Upload LTE CIQ File", key="lteciq")
+
+            # def form_callback():
+            #     print(st.session_state.my_slider)
+            #     print(st.session_state.my_checkbox)
+            if uploaded_file_lte_ciq is not None:
+
+                uploadedfn_lte = uploaded_file_lte_ciq.name
+                # siteid = uploadedfn.split('.')[0][3:]
+
+                # To read file as bytes:
+                bytes_data = uploaded_file_lte_ciq.getvalue()
+                # st.write(bytes_data)
+
+                # To convert to a string based() IO:
+                # stringio = StringIO(uploaded_file_tnd_ciq.getvalue().decode("utf-8"))
+
+                lte_nokia = pd.read_excel(uploaded_file_lte_ciq,
+                                          sheet_name='IDLE InterFreq. Template', header=4, skiprows=None)
+                freq_list = lte_nokia['EUTRA frequency value'][5:].to_list()
+                print(freq_list)
+        with st.container():
+
+            hide_st_style = """
+                    <style>
+                    # MainMenu {visibility: hidden;}
+                    footer {visibility: hidden;}
+                    header {visibility: hidden;}
+                    </style>
+                    """
+            st.markdown(hide_st_style, unsafe_allow_html=True)
             option = st.selectbox(
                 'FDD EQM Options',
                 ('3AHLOA(shared)_15BW_3AEHC(shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW', '3AHLOA(shared)_15BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW_ 3AEHC (shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG (shared)_NoAEHC', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_20BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_40BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW'))
@@ -155,6 +197,7 @@ def app():
                                           sheet_name='gNodeB Nokia', header=4, skiprows=None)
                 tnd_nokia = tnd_nokia.dropna(thresh=5)
                 tnd_nokia = tnd_nokia.iloc[:, :]
+
         # tnd_nokia
 
         # with open(xml_path, 'r') as f:
@@ -354,6 +397,41 @@ def app():
             # print(len(mode_list))
             return dict
 
+        def get_band_dict():
+            band_dict = {}
+
+            for key, val in enumerate(freq_list):
+                if 600 < int(val) < 700:
+                    band_dict.__setitem__(2, val)
+                elif 1950 < int(val) < 2399:
+                    band_dict.__setitem__(1, val)
+                elif 5010 < int(val) < 5179:
+                    band_dict.__setitem__(4, val)
+                elif 68586 < int(val) < 68935:
+                    band_dict.__setitem__(3, val)
+            print(band_dict)
+            return band_dict
+
+        def get_ho_dict(parName):
+            mode = ho_cell_par[str(parName)]
+            lcrid = ho_cell_par['lcrid']
+            mode_lst = mode.to_list()
+            lcrid_lst = lcrid.to_list()
+            comb_list = zip(mode_lst, lcrid_lst)
+            # # print(set(comb_list))
+            # for mode, lcrid in enumerate(comb_list):
+            #     print(mode, lcrid)
+            dict = {lcrid: mode for mode, lcrid in comb_list}
+            # print(dict)
+            print('---')
+            print(dict.get(1))
+            # print(list(mode))
+            mode_set = set(mode.to_list())
+            # print(mode_set)
+        #     mode_list = mode_set.to_list()
+            # print(len(mode_list))
+            return dict
+
         def get_physcell_dict(parName):
             mode = ciq_cell_par[str(parName)]
             lcrid = ciq_cell_par['cellName']
@@ -427,6 +505,16 @@ def app():
                             int(mf_tag.parent['distName'].split('-')[-1]))
                         # print(f"replacing with value..{mf_val}")
                         mf_tag.string = str(mf_val).lstrip().rstrip()
+                    # NRHOIF name=ssbFrequency
+                    elif mf_tag.parent['class'].find('NRHOIF') > -1:
+                        #                 mf_val = mf_dict.get(int(mf_tag.parent['distName'].split('/')[2].split('-')[-1]))
+                        cell_value = re.findall(
+                            r'NRCELL-[0-9]+', mf_tag.parent['distName'])[-1].split('-')[1]
+                        print(f"cell value is..{cell_value}")
+                        mf_val = mf_dict.get(int(cell_value))
+                        print(
+                            f"the  mf value is.. {str(mf_val).lstrip().rstrip()}")
+                        mf_tag.string = str(mf_val).lstrip().rstrip()
                     elif mf_tag.parent['class'].find('NRPLMNSET_NSA') > -1:
                         #                 mf_val = mf_dict.get(int(mf_tag.parent['distName'].split('/')[2].split('-')[-1]))
                         cell_value = re.findall(
@@ -481,8 +569,22 @@ def app():
                         print(f"old text..{mf_tag}")
                         mf_tag.string = str(mf_val).lstrip().rstrip()
                         print(f"changed text..{mf_tag}")
+                    elif mf_tag.parent['class'].find('NRREDRT') > -1:
+                        # find sibling redirPrio
+                        redirPrio = mf_tag.find_next_sibling("p")
+                        cell_value = redirPrio.text
+                        print(f"cell value is..{cell_value}")
+                        mf_val = mf_dict.get(int(cell_value))
+                        print(
+                            f"the  mf value is.. {str(mf_val).lstrip().rstrip()}")
+                        print(
+                            f"lenght of mf_val is..{type(mf_val)}")
+                        print(f"old text..{mf_tag}")
+                        if not str(mf_val).find('None') > -1:
+                            mf_tag.string = str(mf_val).lstrip().rstrip()
+                            print(f"changing text..{mf_tag}")
+
                 elif mf_tag.parent.parent.parent['class'].find('NRIAFIM') > -1:
-                    cell_value = ''
                     list_physcell = mf_tag.parent.parent.find_all(
                         "p", attrs={"name": "physCellId"})
                     print(type(list_physcell))
@@ -496,10 +598,14 @@ def app():
             if value.find('dlCarrierFreq') > -1:
                 pci_dict = get_idle_dict(str(value))
                 print(f"pMax Dict..{pci_dict}")
+            elif value.find('ssbFrequency') > -1:
+                pci_dict = get_ho_dict(str(value))
+                print(f"pMax Dict..{pci_dict}")
+            elif value.find('redirFreqEutra') > -1:
+                pci_dict = get_band_dict()
+                print(f"pMax Dict..{pci_dict}")
             else:
                 pci_dict = get_nrcell_dict(str(value))
-                # print(f"pMax Dict for {str(key)}..{pci_dict}")
-                # print(str(key))
 
             replace_nrcell_par(str(key), pci_dict,
                                get_physcell_dict('physCellId'))
@@ -547,7 +653,10 @@ def app():
             'nrarfcn': 'nrarfcn',
             'fiveGsTac': 'fiveGsTac',
             'trackingAreaDN': 'fiveGsTac',
-            'dlCarrierFreq': 'dlCarrierFreq'}
+            'dlCarrierFreq': 'dlCarrierFreq',
+            'ssbFrequency': 'ssbFrequency',
+            'redirFreqEutra': 'redirFreqEutra'
+        }
         mrbts_par_dict = {
             'location': 'moduleLocation',
             'btsName': 'btsName',
