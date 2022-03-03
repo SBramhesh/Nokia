@@ -45,6 +45,7 @@ def app():
                     modify_mrbts_tag(mi, mrbts_par_dict.get(mi))
                 process_tnd_pars()
                 remove_blank_spaces()
+                process_lte_cellpar()
                 st.success('XML successfully parsed :point_down:!!')
                 # st.write(f"*VSWR*: :point_down:")
             st.session_state['download'] = True
@@ -165,8 +166,10 @@ def app():
 
                 lte_nokia = pd.read_excel(uploaded_file_lte_ciq,
                                           sheet_name='IDLE InterFreq. Template', header=4, skiprows=None)
+
                 freq_list = lte_nokia['EUTRA frequency value'][5:].to_list()
                 print(freq_list)
+
         with st.container():
 
             hide_st_style = """
@@ -221,6 +224,174 @@ def app():
         # rooot = ET.fromstring(tree)
 
         # TND ---
+        def return_band(x):
+            if 599 < x < 701:
+                return 'B2'
+            elif 1950 < x < 2399:
+                return 'B4'
+            elif 5010 < x < 5179:
+                return 'B12'
+            elif 68586 < x < 68935:
+                return 'B71'
+            else:
+                return 'Del'
+
+        def return_priority(band, lncel):
+            if (band == 'B4' or band == 'B2'):
+                if lncel == 'mbw25':
+                    return 4
+                else:
+                    return 5
+            elif band == 'B12':
+                return 2
+            elif band == 'B71':
+                return 3
+
+        def return_mbw(lncel):
+            if lncel == 21:
+                return 'mbw25'
+            elif lncel == 22:
+                return 'mbw50'
+            elif lncel == 23:
+                return 'mbw75'
+            else:
+                return 'mbw100'
+
+        def get_nrlim_index(nrlim_df):
+            mf_tags = soup.find_all(attrs={"name": "allowedMeasBw"})
+            # NRSYSINFO_PROFILE-0/NRLIM-
+            nrlim0_index_list = []
+            nrlim1_index_list = []
+            for mf_tag in mf_tags:
+                if mf_tag.parent.name.find('managedObject') > -1:
+                    # print(
+                    # f"found managedObject in parent..{mf_tag.parent['class']}")
+                    if mf_tag.parent['class'].find('NRLIM') > -1 and mf_tag.parent['distName'].find('NRSYSINFO_PROFILE-0/NRLIM-') > -1:
+                        nrlim0_index_list.append(
+                            str(mf_tag.parent['distName']).split('/')[-1].split('-')[-1])
+                    elif mf_tag.parent['class'].find('NRLIM') > -1 and mf_tag.parent['distName'].find('NRSYSINFO_PROFILE-1/NRLIM-') > -1:
+                        nrlim1_index_list.append(
+                            str(mf_tag.parent['distName']).split('/')[-1].split('-')[-1])
+            return nrlim0_index_list, nrlim1_index_list
+
+        def replace_nrlim_tags(nrlim_df, nrlim_0_dict, nrlim_1_dict):
+            mf_tags = soup.find_all(attrs={"name": "allowedMeasBw"})
+            # NRSYSINFO_PROFILE-0/NRLIM-
+            for mf_tag in mf_tags:
+                if mf_tag.parent.name.find('managedObject') > -1:
+                    # print(
+                    # f"found managedObject in parent..{mf_tag.parent['class']}")
+                    if mf_tag.parent['class'].find('NRLIM') > -1 and mf_tag.parent['distName'].find('NRSYSINFO_PROFILE-0/NRLIM-') > -1:
+                        band_0 = nrlim_0_dict.get(
+                            str(mf_tag.parent['distName']).split('/')[-1].split('-')[-1])
+                        print(band_0)
+                        if str(band_0) in nrlim_df.values:
+                            band_group_0 = nrlim_df.groupby('band')
+                            print(band_group_0.get_group(str(band_0)))
+                            print(band_group_0.get_group(
+                                str(band_0))['lncel'].iloc[0])
+                            print('-------')
+                            mf_tag.string = band_group_0.get_group(str(band_0))[
+                                'lncel'].iloc[0]
+                            freq = mf_tag.find_next_sibling("p")
+                            print(band_group_0.get_group(
+                                str(band_0))['dlink'].iloc[0])
+                            print('-------')
+                            freq.string = str(band_group_0.get_group(
+                                str(band_0))['dlink'].iloc[0])
+                            print(band_group_0.get_group(
+                                str(band_0))['priority'].iloc[0])
+                            print('-------')
+                            prior = freq.find_next_sibling("p")
+                            prior.string = str(band_group_0.get_group(
+                                str(band_0))['priority'].iloc[0])
+
+                    elif mf_tag.parent['class'].find('NRLIM') > -1 and mf_tag.parent['distName'].find('NRSYSINFO_PROFILE-1/NRLIM-') > -1:
+                        band_1 = nrlim_1_dict.get(
+                            str(mf_tag.parent['distName']).split('/')[-1].split('-')[-1])
+                        print(band_1)
+                        if str(band_1) in nrlim_df.values:
+                            band_group_1 = nrlim_df.groupby('band')
+                            print(type(band_group_1.get_group(str(band_1))))
+                            print(band_group_1.get_group(
+                                str(band_1))['lncel'].iloc[0])
+                            print('-------')
+                            mf_tag.string = band_group_0.get_group(str(band_1))[
+                                'lncel'].iloc[0]
+                            freq = mf_tag.find_next_sibling("p")
+                            print(band_group_1.get_group(
+                                str(band_1))['dlink'].iloc[0])
+                            print('-------')
+                            freq.string = str(band_group_1.get_group(
+                                str(band_1))['dlink'].iloc[0])
+                            print(band_group_1.get_group(
+                                str(band_1))['priority'].iloc[0])
+                            print('-------')
+                            prior = freq.find_next_sibling("p")
+                            prior.string = str(band_group_1.get_group(
+                                str(band_1))['priority'].iloc[0])
+
+        def process_lte_cellpar():
+
+            cellpar_nokia = pd.read_excel(
+                uploaded_file_lte_ciq, sheet_name='CellPar', usecols='J:BQ', header=0, skiprows=3)
+            cellpar_nokia = cellpar_nokia.dropna(thresh=3).iloc[:, 1:]
+            cellpar_nokia.columns.to_list()
+            nrlim_df = cellpar_nokia.iloc[3:, [0, -1]].reset_index(drop=True)
+            nrlim_df = nrlim_df.dropna()
+            lncel_list = nrlim_df['LNCEL Template Id'].to_list()
+
+            lncel_dict = dict({
+                (21, '5Mhz'),
+                (22, '10Mhz'),
+                (23, '15Mhz'),
+                (24, '20Mhz')})
+            mbw_dict = dict({
+                ('5Mhz', 'mbw25'),
+                ('10Mhz', 'mbw50'),
+                ('15Mhz', 'mbw75'),
+                ('20Mhz', 'mbw100')})
+            lncel_list = [int(x) for x in lncel_list]
+            llncel_list = [mbw_dict.get(lncel_dict.get(x)) for x in lncel_list]
+            nrlim_df['LNCEL Template Id'] = llncel_list
+            nrlim_df.columns = ['lncel', 'dlink']
+
+            band_list = []
+            for row in nrlim_df.itertuples():
+                band_list.append(return_band(row.dlink))
+            nrlim_df['band'] = band_list
+            print(band_list)
+            nrlim_df['band'] = band_list
+            nrlim_df = nrlim_df[nrlim_df['band'] != 'Del']
+
+            prior_list = []
+            mbw_list = []
+            for row in nrlim_df.itertuples():
+                prior_list.append(return_priority(row.band, row.lncel))
+            print(prior_list)
+            nrlim_df['priority'] = prior_list
+            for row in nrlim_df.itertuples():
+                mbw_list.append(return_mbw(row.lncel))
+            print(mbw_list)
+            nrlim_df['lncel'] = mbw_list
+            print(nrlim_df.columns.to_list())
+            band_group = nrlim_df.groupby('band')
+
+            nrlim0_index_list, nrlim1_index_list = get_nrlim_index(nrlim_df)
+            print(int(4 - len(nrlim0_index_list)))
+            if len(nrlim0_index_list) > 4:
+                nrlim0_index_list = nrlim0_index_list[:int(
+                    4 - len(nrlim0_index_list))]
+            if len(nrlim1_index_list) > 4:
+                nrlim1_index_list = nrlim1_index_list[:int(
+                    4 - len(nrlim1_index_list))]
+            band_list = ['B2', 'B4', 'B71', 'B12']
+            nrlim_0_dict = dict(zip(nrlim0_index_list, band_list))
+            nrlim_1_dict = dict(zip(nrlim1_index_list, band_list))
+
+            # Mutate XML
+
+            replace_nrlim_tags(nrlim_df, nrlim_0_dict, nrlim_1_dict)
 
         def get_tnd_dict(parName):
             mode = tnd_nokia[str(parName)]
