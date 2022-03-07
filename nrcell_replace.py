@@ -29,7 +29,7 @@ def app():
     st.session_state['download'] = False
 
     def process_xml():
-        if uploaded_file_tnd_ciq is not None and uploaded_file_nr_ciq is not None:
+        if uploaded_file_tnd_ciq is not None and uploaded_file_nr_ciq is not None and uploaded_file_lte_ciq is not None:
 
             # my_bar = st.progress(0)
 
@@ -277,6 +277,7 @@ def app():
         def replace_nrlim_tags(nrlim_df, nrlim_0_dict, nrlim_1_dict):
             mf_tags = soup.find_all(attrs={"name": "allowedMeasBw"})
             # NRSYSINFO_PROFILE-0/NRLIM-
+            st.sidebar.table(nrlim_df)
             for mf_tag in mf_tags:
                 if mf_tag.parent.name.find('managedObject') > -1:
                     # print(
@@ -284,11 +285,11 @@ def app():
                     if mf_tag.parent['class'].find('NRLIM') > -1 and mf_tag.parent['distName'].find('NRSYSINFO_PROFILE-0/NRLIM-') > -1:
                         band_0 = nrlim_0_dict.get(
                             str(mf_tag.parent['distName']).split('/')[-1].split('-')[-1])
-                        print(band_0)
+                        st.sidebar.write(f"band_0...{band_0}")
                         if str(band_0) in nrlim_df.values:
                             band_group_0 = nrlim_df.groupby('band')
                             print(band_group_0.get_group(str(band_0)))
-                            print(band_group_0.get_group(
+                            st.sidebar.write(band_group_0.get_group(
                                 str(band_0))['lncel'].iloc[0])
                             print('-------')
                             mf_tag.string = band_group_0.get_group(str(band_0))[
@@ -355,6 +356,7 @@ def app():
             llncel_list = [mbw_dict.get(lncel_dict.get(x)) for x in lncel_list]
             nrlim_df['LNCEL Template Id'] = llncel_list
             nrlim_df.columns = ['lncel', 'dlink']
+            st.sidebar.write(nrlim_df)
 
             band_list = []
             for row in nrlim_df.itertuples():
@@ -371,8 +373,9 @@ def app():
             print(prior_list)
             nrlim_df['priority'] = prior_list
             for row in nrlim_df.itertuples():
-                mbw_list.append(return_mbw(row.lncel))
-            print(mbw_list)
+                # mbw_list.append(return_mbw(row.lncel))
+                mbw_list.append(row.lncel)
+            st.sidebar.write(mbw_list)
             nrlim_df['lncel'] = mbw_list
             print(nrlim_df.columns.to_list())
             band_group = nrlim_df.groupby('band')
@@ -405,6 +408,11 @@ def app():
             dict = {lcrid: mode for mode, lcrid in comb_list}
             return dict
 
+        def get_bts_name():
+            bts_tags = soup.find_all(attrs={"name": "btsName"})
+            bts_name = bts_tags[-1].text
+            return str(bts_name).lstrip().rstrip()
+
         def replace_tnd_par1(parName, mf_dict):
             mf_tags = soup.find_all(attrs={"name": str(parName)})
             bts_tags = soup.find_all(attrs={"name": "btsName"})
@@ -428,7 +436,7 @@ def app():
                     # localIpAddr IPF-1
                     if mf_tag.parent['distName'].find('IPIF-1/IPADDRESSV4-2') > -1:
                         mf_val = mf_dict.get(bts_name.lstrip().rstrip())
-                        print(f"bstName is..{bts_name}")
+                        st.sidebar.write(f"bstName is..{bts_name}")
                         print(f"localIpAddr IPF-1  is.. {mf_val}")
                         mf_tag.string = str(mf_val).lstrip().rstrip()
 
@@ -855,7 +863,7 @@ def app():
         # print(f"pretty xml...{pretty_xml_as_string}")
         st.download_button(label='📥 Download XML ',
                            data=pretty_xml_as_string,
-                           file_name=f'3AHLOA(shared)_15BW+3AEHC (shared)_100BW_NoAHFIG.xml')
+                           file_name=f'{str(get_mrbts_value("mrBtsId")).lstrip().rstrip()}-{get_bts_name()}-3AHLOA(shared)_15BW+3AEHC (shared)_100BW_NoAHFIG.xml')
 
 
 app()
