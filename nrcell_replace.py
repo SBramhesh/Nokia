@@ -105,7 +105,7 @@ def app():
                 ho_cell_par = ho_cell_par.dropna(thresh=5)
                 ho_cell_par = ho_cell_par.iloc[:, 1:]
                 # ho_cell_par
-                # st.sidebar.table(ciq_cell_par)
+                # print(ciq_cell_par)
                 inr_cell_par = pd.read_excel(
                     uploaded_file_nr_ciq, sheet_name='Idle Inter NR', header=3, skiprows=None)
                 inr_cell_par = inr_cell_par.dropna(thresh=5)
@@ -277,7 +277,7 @@ def app():
         def replace_nrlim_tags(nrlim_df, nrlim_0_dict, nrlim_1_dict):
             mf_tags = soup.find_all(attrs={"name": "allowedMeasBw"})
             # NRSYSINFO_PROFILE-0/NRLIM-
-            st.sidebar.table(nrlim_df)
+            print(nrlim_df)
             for mf_tag in mf_tags:
                 if mf_tag.parent.name.find('managedObject') > -1:
                     # print(
