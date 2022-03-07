@@ -285,11 +285,11 @@ def app():
                     if mf_tag.parent['class'].find('NRLIM') > -1 and mf_tag.parent['distName'].find('NRSYSINFO_PROFILE-0/NRLIM-') > -1:
                         band_0 = nrlim_0_dict.get(
                             str(mf_tag.parent['distName']).split('/')[-1].split('-')[-1])
-                        st.sidebar.write(f"band_0...{band_0}")
+                        print(f"band_0...{band_0}")
                         if str(band_0) in nrlim_df.values:
                             band_group_0 = nrlim_df.groupby('band')
                             print(band_group_0.get_group(str(band_0)))
-                            st.sidebar.write(band_group_0.get_group(
+                            print(band_group_0.get_group(
                                 str(band_0))['lncel'].iloc[0])
                             print('-------')
                             mf_tag.string = band_group_0.get_group(str(band_0))[
@@ -356,7 +356,7 @@ def app():
             llncel_list = [mbw_dict.get(lncel_dict.get(x)) for x in lncel_list]
             nrlim_df['LNCEL Template Id'] = llncel_list
             nrlim_df.columns = ['lncel', 'dlink']
-            st.sidebar.write(nrlim_df)
+            print(nrlim_df)
 
             band_list = []
             for row in nrlim_df.itertuples():
@@ -375,7 +375,7 @@ def app():
             for row in nrlim_df.itertuples():
                 # mbw_list.append(return_mbw(row.lncel))
                 mbw_list.append(row.lncel)
-            st.sidebar.write(mbw_list)
+            print(mbw_list)
             nrlim_df['lncel'] = mbw_list
             print(nrlim_df.columns.to_list())
             band_group = nrlim_df.groupby('band')
@@ -436,7 +436,7 @@ def app():
                     # localIpAddr IPF-1
                     if mf_tag.parent['distName'].find('IPIF-1/IPADDRESSV4-2') > -1:
                         mf_val = mf_dict.get(bts_name.lstrip().rstrip())
-                        st.sidebar.write(f"bstName is..{bts_name}")
+                        print(f"bstName is..{bts_name}")
                         print(f"localIpAddr IPF-1  is.. {mf_val}")
                         mf_tag.string = str(mf_val).lstrip().rstrip()
 
