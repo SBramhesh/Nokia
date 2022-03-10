@@ -186,7 +186,7 @@ def app():
                 ('3AHLOA(shared)_15BW+3AEHC (shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AEHC (shared)_100BW_NoAHFIG', '3AHLOA(shared)_15BW+3AHFIG(shared)+3AEHC (shared)_20BW', '3AHLOA(shared)_15BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_15BW+3AHFIG(shared)+3AEHC (shared)_100BW',
                  '3AHLOA(shared)_20BW+3AHFIG (shared)_NoAEHC', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_20BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_40BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW'))
 
-            print('You selected:', option)
+            st.sidebar.write('You selected:', option)
             print(list(xml_dict.keys()))
             print(
                 len(xml_dict["3AHLOA(shared)_20BW+3AEHC (shared)_100BW_NoAHFIG"]))
@@ -520,6 +520,7 @@ def app():
         def get_mrbts_value(parName):
             par_col = ciq_siteMain[parName]
             print(par_col.to_list())
+            print(par_col.to_list()[-1])
             par_str = par_col.to_list()[-1]
         #     bts_str = 'NPH20115B'
             print(par_str)
@@ -869,9 +870,10 @@ def app():
         pretty_xml_as_string = dom.toprettyxml()
         # pretty_xml_as_string = str(soup.prettify(formatter=None))
         # print(f"pretty xml...{pretty_xml_as_string}")
+        st.sidebar.write(f"option selected.. {option}")
         st.download_button(label='📥 Download XML ',
                            data=pretty_xml_as_string,
-                           file_name=f'{str(get_mrbts_value("mrBtsId")).lstrip().rstrip()}-{get_bts_name()}-3AHLOA(shared)_15BW+3AEHC (shared)_100BW_NoAHFIG.xml')
+                           file_name=f'{str(get_mrbts_value("mrBtsId"))}-{get_bts_name()}-{option}.xml')
 
 
 app()
