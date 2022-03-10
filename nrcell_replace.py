@@ -515,7 +515,7 @@ def app():
                     nrbts_str.split('-')[1], str(new_nrbts_id))
                 nrbts_list = list[2:]
                 print(nrbts_list)
-                suffix = new_nrbts_str + '/'.join(nrbts_list)
+                suffix = new_nrbts_str + '/' + '/'.join(nrbts_list)
                 print(f"suffix is.. {suffix}")
             id_str = list[0]
             new_id_str = id_str.replace(id_str.split('-')[1], str(new_id))
