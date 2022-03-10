@@ -41,6 +41,7 @@ def app():
                     nrcell_modify(i, nrcell_par_dict.get(i))
                 # print(soup.find_all(attrs={"name": "btsName"}))mrbts_key_list = [key for key in mrbts_par_dict]
                 # print(key_list)
+                # modify_nrbts_tag()
                 for mi in mrbts_key_list:
                     modify_mrbts_tag(mi, mrbts_par_dict.get(mi))
                 process_tnd_pars()
@@ -502,12 +503,20 @@ def app():
         # MRBTS-1841114/EQM-1/APEQM-1/RMOD-5/PHYANT-1
         # str.replace("is", "was")
 
-        def replace_mrbts_id(mrbts_str, new_id):
+        def replace_mrbts_id(mrbts_str, new_id, new_nrbts_id=0):
             list = mrbts_str.split('/')
             m_list = list[1:]
             print(m_list)
             suffix = '/'.join(m_list)
             print(suffix)
+            if str(suffix).find('NRBTS-') > -1:
+                nrbts_str = list[1]
+                new_nrbts_str = nrbts_str.replace(
+                    nrbts_str.split('-')[1], str(new_nrbts_id))
+                nrbts_list = list[2:]
+                print(nrbts_list)
+                suffix = new_nrbts_str + '/'.join(nrbts_list)
+                print(f"suffix is.. {suffix}")
             id_str = list[0]
             new_id_str = id_str.replace(id_str.split('-')[1], str(new_id))
             result_str = new_id_str + '/' + suffix
@@ -536,10 +545,19 @@ def app():
             # ''' change all values of MRBTS-
             # '''
             for txt in soup.findAll(text=True):
-                if re.search('MRBTS-(\d{7,})', txt, re.I):
+                if re.search('MRBTS-(\d{7,})\/NRBTS-(\d{7,})', txt, re.I):
+                    print('found MRBTS')
+                    newtext = re.sub(
+                        r'MRBTS-(\d{7,})\/NRBTS-(\d{7,})', f'MRBTS-{str(get_mrbts_value("mrBtsId")).lstrip().rstrip()}/NRBTS-{str(get_mrbts_value("mrBtsId")).lstrip().rstrip()}', txt)
+                    print(newtext)
+                    txt.replaceWith(newtext)
+                if re.search('MRBTS-(\d{7,})\/(?!NRBTS)', txt, re.I):
+                    print('found MRBTS no NRBTS')
                     newtext = re.sub(
                         r'MRBTS-(\d{7,})', f'MRBTS-{str(get_mrbts_value("mrBtsId")).lstrip().rstrip()}', txt)
+                    print(newtext)
                     txt.replaceWith(newtext)
+                # print(txt)
             # for txt in soup.findAll(text=True):
             #     if re.search('identi',txt,re.I) and txt.parent.name != 'a':
             #     newtext = re.sub(r'identi(\w+)', r'replace\1', txt.lower())
@@ -557,11 +575,26 @@ def app():
                         print(f"-----")
                         print(tag['distName'])
                         tag['distName'] = replace_mrbts_id(
-                            tag['distName'], str(get_mrbts_value('mrBtsId')).lstrip().rstrip())
+                            tag['distName'], str(get_mrbts_value('mrBtsId')).lstrip().rstrip(), str(get_mrbts_value('nrBtsId')).lstrip().rstrip())
                 elif str(bts_tag.parent['class']).find('MRBTS') or str(bts_tag.parent['class']).find('APEQM') > -1:
                     print(f"Modifying {attr_name}..")
                     bts_tag.string = str(get_mrbts_value(
                         mrbts_par)).lstrip().rstrip()
+
+        def modify_nrbts_tag():
+            print(str(get_mrbts_value("nrBtsId")).lstrip().rstrip())
+            for txt in soup.findAll(text=True):
+                if re.search('NRBTS-(\d{7,})', txt, re.I):
+                    print('found NRBTS')
+                    newtext = re.sub(
+                        r'NRBTS-(\d{7,})', f'NRBTS-{str(get_mrbts_value("nrBtsId")).lstrip().rstrip()}', txt)
+                    print(newtext)
+                    txt.replaceWith(newtext)
+                # print(txt)
+            # for txt in soup.findAll(text=True):
+            #     if re.search('identi',txt,re.I) and txt.parent.name != 'a':
+            #     newtext = re.sub(r'identi(\w+)', r'replace\1', txt.lower())
+            #     txt.replaceWith(newtext)
 
         # NRCELL---
 
@@ -688,9 +721,25 @@ def app():
                 if mf_tag.parent.name.find('managedObject') > -1:
                     # print(
                     # f"found managedObject in parent..{mf_tag.parent['class']}")
-                    if mf_tag.parent['class'].find('NRCELL') > -1:
+                    if mf_tag.parent['class'].find('NRCELL_FDD') > -1:
+                        cell_value = re.findall(
+                            r'NRCELL-[0-9]+', mf_tag.parent['distName'])[-1].split('-')[1]
+
+                        mf_val = mf_dict.get(int(cell_value))
+                        print(
+                            f"the  mf value is.. {str(mf_val).lstrip().rstrip()}")
+
+                        print(f"text is..{mf_tag.text}")
+
+                        mf_tag.string = str(mf_val).lstrip().rstrip()
+
+                    elif mf_tag.parent['class'].find('NRCELL') > -1:
                         mf_val = mf_dict.get(
                             int(mf_tag.parent['distName'].split('-')[-1]))
+                        print(
+                            mf_tag.parent['distName'].split('-')[-1])
+                        print('----')
+                        print(mf_val)
                         # print(f"replacing with value..{mf_val}")
                         mf_tag.string = str(mf_val).lstrip().rstrip()
                     # NRHOIF name=ssbFrequency
