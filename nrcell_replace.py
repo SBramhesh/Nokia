@@ -14,6 +14,7 @@ import aloha_dict
 pd.options.display.precision = 2
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 100)
+# aloha_dict.commit_file()
 xml_dict = aloha_dict.return_dict()
 
 

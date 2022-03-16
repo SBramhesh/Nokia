@@ -4,6 +4,7 @@ import streamapp
 import attLogs
 import vswrapp
 import nrcell_replace
+import aloha_dict
 import streamlit_authenticator as stauth
 import streamlit as st
 
@@ -32,6 +33,7 @@ if authentication_status:
         # "Files Processed (Raw Data + Summary)": fireStoreapp,
         "Process AT&T Log Files (RSSI)": attLogs,
         "5G Nokia Scripting": nrcell_replace,
+        "Upload XML template": aloha_dict,
     }
     st.sidebar.title('Nokia Main Menu')
     selection = st.sidebar.radio(
